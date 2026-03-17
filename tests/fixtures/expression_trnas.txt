@@ -1,0 +1,4 @@
+AlaAGC
+ValCAC
+GlyGCC
+UndetNNN

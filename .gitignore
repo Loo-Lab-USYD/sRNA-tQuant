@@ -1,0 +1,6 @@
+Analysis/
+Data/NGS/
+old/
+Data/Genomes/
+__pycache__/
+.pytest_cache/

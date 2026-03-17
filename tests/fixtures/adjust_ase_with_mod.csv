@@ -1,0 +1,2 @@
+contig	position	variantID	refAllele	altAllele	refCount	altCount	totalCount	lowMAPQDepth	lowBaseQDepth	rawDepth	otherBases	improperPairs
+cluster1	23	.	a	G	80	20	100	0	0	100	0	0

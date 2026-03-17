@@ -1,0 +1,3 @@
+sample_id,fastq_1,fastq_2
+HCT116_test,FIXTURES_DIR/HCT116_test.fastq.gz,
+HeLa_test,FIXTURES_DIR/HeLa_test.fastq.gz,
