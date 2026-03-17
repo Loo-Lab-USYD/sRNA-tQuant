@@ -218,4 +218,4 @@ The core tRNA quantification strategy — mapping to an artificial genome, filte
 
 ## License
 
-[MIT](LICENSE) - Markus Williams
+All rights reserved. See [LICENSE](LICENSE) for details.
