@@ -244,7 +244,7 @@ def compute_blend_weights(anticodons, sibling_sim, ac_spanning, ac_total,
 
 def salmon_to_rpm(quant_path, info_path, out_path, cluster_rpm_path=None,
                   bam_path=None, annotations_path=None,
-                  min_spanning=100, max_blend_weight=0.8):
+                  min_spanning=100, max_blend_weight=0.8, clamp_threshold=0):
     """Compute anticodon-level RPMs with optional span-weighted blending."""
 
     # Parse reference
@@ -279,6 +279,10 @@ def salmon_to_rpm(quant_path, info_path, out_path, cluster_rpm_path=None,
     # Without BAM: standard mode (identical to salmon_to_rpm.py)
     if not bam_path:
         rpm_df = pd.DataFrame({"rpm": salmon_rpm, "rpm_nomod": salmon_rpm})
+        # Clamp low-abundance anticodons to zero (removes tRNA fragment noise)
+        if clamp_threshold > 0:
+            for col in ["rpm", "rpm_nomod"]:
+                rpm_df.loc[rpm_df[col] < clamp_threshold, col] = 0.0
         reads_row = pd.DataFrame(
             {"rpm": [tot_reads], "rpm_nomod": [tot_reads]}, index=["READS"]
         )
@@ -326,6 +330,10 @@ def salmon_to_rpm(quant_path, info_path, out_path, cluster_rpm_path=None,
 
     # Output RPM (blended values in both columns for compatibility)
     rpm_df = pd.DataFrame({"rpm": blended_rpm, "rpm_nomod": blended_rpm})
+    # Clamp low-abundance anticodons to zero (removes tRNA fragment noise)
+    if clamp_threshold > 0:
+        for col in ["rpm", "rpm_nomod"]:
+            rpm_df.loc[rpm_df[col] < clamp_threshold, col] = 0.0
     reads_row = pd.DataFrame(
         {"rpm": [tot_reads], "rpm_nomod": [tot_reads]}, index=["READS"]
     )
@@ -393,6 +401,8 @@ if __name__ == "__main__":
                         help="Minimum spanning reads per isoacceptor to enable blending (default: 5)")
     parser.add_argument("--max-blend-weight", type=float, default=0.55,
                         help="Maximum blend weight for spanning reads (default: 0.55)")
+    parser.add_argument("--clamp-threshold", type=float, default=0,
+                        help="Zero out anticodons below this RPM (default: 0 = disabled)")
     args = parser.parse_args()
 
     salmon_to_rpm(
@@ -402,4 +412,5 @@ if __name__ == "__main__":
         annotations_path=args.annotations,
         min_spanning=args.min_spanning,
         max_blend_weight=args.max_blend_weight,
+        clamp_threshold=args.clamp_threshold,
     )

@@ -19,7 +19,7 @@ import re
 import pandas as pd
 
 
-def salmon_to_rpm(quant_path, info_path, out_path, cluster_rpm_path=None):
+def salmon_to_rpm(quant_path, info_path, out_path, cluster_rpm_path=None, clamp_threshold=0):
     # Load Salmon quantification
     quant = pd.read_table(quant_path)
 
@@ -63,6 +63,11 @@ def salmon_to_rpm(quant_path, info_path, out_path, cluster_rpm_path=None):
         rpm_df.loc[anticodon, "rpm_nomod"] += cluster_rpm
         cluster_rpms[cluster_name] = cluster_rpm
 
+    # Clamp low-abundance anticodons to zero (removes tRNA fragment noise)
+    if clamp_threshold > 0:
+        for col in ["rpm", "rpm_nomod"]:
+            rpm_df.loc[rpm_df[col] < clamp_threshold, col] = 0.0
+
     # Append total reads row
     reads_row = pd.DataFrame(
         {"rpm": [tot_reads], "rpm_nomod": [tot_reads]}, index=["READS"]
@@ -85,6 +90,9 @@ if __name__ == "__main__":
     parser.add_argument("info", help="clusterInfo.fa file")
     parser.add_argument("output", help="Output RPM CSV")
     parser.add_argument("--cluster-rpm", help="Output per-cluster RPM CSV")
+    parser.add_argument("--clamp-threshold", type=float, default=0,
+                        help="Zero out anticodons below this RPM (default: 0 = disabled)")
     args = parser.parse_args()
 
-    salmon_to_rpm(args.quant, args.info, args.output, getattr(args, "cluster_rpm"))
+    salmon_to_rpm(args.quant, args.info, args.output, getattr(args, "cluster_rpm"),
+                  clamp_threshold=args.clamp_threshold)

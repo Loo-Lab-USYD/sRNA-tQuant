@@ -116,6 +116,7 @@ The bundle is genome-specific — an hg38 bundle works for any hg38 dataset rega
 |-----------|---------|-------------|
 | `--quantifier` | `salmon` | `salmon` (EM-based, recommended) or `decision` (legacy) |
 | `--span_weighted` | `false` | Blend Salmon with anticodon-spanning reads for improved isoacceptor resolution |
+| `--rpm_clamp_threshold` | `1000` | Zero out anticodons below this RPM to suppress tRF noise (0 to disable) |
 | `--skip_modification_calling` | `true` | Skip variant-based modification detection |
 | `--adapter_sequence` | `null` | 3' adapter (null = fastp auto-detect, recommended) |
 | `--max_cpus` | 8 | Maximum CPUs per process |
@@ -134,6 +135,23 @@ Validated on HEK293, K562, and iPSC against mim-tRNAseq (TGIRT) gold standard:
 | iPSC | 0.535 | 0.556 | +0.021 |
 
 Validation methodology described in [Applying to New Datasets](docs/applying-to-new-datasets.md).
+
+## RPM clamping
+
+Standard small RNA-seq captures tRNA-derived fragments (tRFs) in addition to fragments from mature tRNAs. For lowly-expressed isodecoders, tRF-derived reads can dominate the signal, inflating RPM values that don't reflect true mature tRNA abundance. The `--rpm_clamp_threshold` parameter (default: 1000) zeroes out anticodons below the specified RPM, removing this noise floor.
+
+```bash
+# Default: clamp at 1000 RPM (recommended)
+nextflow run pipeline/main.nf --input samplesheet.csv ...
+
+# Disable clamping (raw RPMs)
+nextflow run pipeline/main.nf --input samplesheet.csv --rpm_clamp_threshold 0 ...
+
+# Custom threshold
+nextflow run pipeline/main.nf --input samplesheet.csv --rpm_clamp_threshold 500 ...
+```
+
+Validated on HEK293 against mim-tRNAseq gold standard (Spearman rho 0.75 -> 0.80 with default threshold of 1000 RPM). Anticodons below the threshold are typically tRF noise rather than signal from full-length mature tRNAs.
 
 ### Validation data
 

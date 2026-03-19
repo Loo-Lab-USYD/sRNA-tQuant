@@ -67,10 +67,11 @@ process SALMON_TO_RPM {
 
     script:
     def bam_arg = params.span_weighted ? "--bam ${bam} --annotations ${meta.id}.RPM_annotations.csv" : ''
+    def clamp_arg = params.rpm_clamp_threshold ? "--clamp-threshold ${params.rpm_clamp_threshold}" : ''
     """
-    echo "salmon_to_rpm v3" > /dev/null
+    echo "salmon_to_rpm v4" > /dev/null
     span_weighted_rpm.py ${quant_dir}/quant.sf ${cluster_info} ${meta.id}.RPM.csv \\
         --cluster-rpm ${meta.id}.cluster_rpm.csv \\
-        ${bam_arg}
+        ${bam_arg} ${clamp_arg}
     """
 }

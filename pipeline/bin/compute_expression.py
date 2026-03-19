@@ -27,7 +27,7 @@ import sys
 import pandas as pd
 
 
-def compute_expression(expr_path, ase_path, info_path, trnas_path, out_path):
+def compute_expression(expr_path, ase_path, info_path, trnas_path, out_path, clamp_threshold=0):
     # Load expression data (idxstats format: contig, length, mapped, unmapped)
     expression = pd.read_table(expr_path, header=None, index_col=0)
     expression.drop("*", inplace=True)
@@ -126,6 +126,11 @@ def compute_expression(expr_path, ase_path, info_path, trnas_path, out_path):
                 rpm.loc[new_trna, "rpm"] += alt_rpms
                 rpm.loc[mapping[c], "rpm"] += cluster_rpm - alt_rpms
 
+    # Clamp low-abundance anticodons to zero (removes tRNA fragment noise)
+    if clamp_threshold > 0:
+        for col in ["rpm", "rpm_nomod"]:
+            rpm.loc[rpm[col] < clamp_threshold, col] = 0.0
+
     # Append total reads row (dynamic, not hardcoded to index 66)
     reads_row = pd.DataFrame(
         {"rpm": [tot_reads], "rpm_nomod": [tot_reads]}, index=["READS"]
@@ -136,4 +141,17 @@ def compute_expression(expr_path, ase_path, info_path, trnas_path, out_path):
 
 
 if __name__ == "__main__":
-    compute_expression(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Compute anticodon-level RPM from idxstats")
+    parser.add_argument("expression", help="idxstats expression file")
+    parser.add_argument("ase", help="ASE CSV file")
+    parser.add_argument("info", help="clusterInfo.fa file")
+    parser.add_argument("trnas", help="tRNAs.txt file")
+    parser.add_argument("output", help="Output RPM CSV")
+    parser.add_argument("--clamp-threshold", type=float, default=0,
+                        help="Zero out anticodons below this RPM (default: 0 = disabled)")
+    args = parser.parse_args()
+
+    compute_expression(args.expression, args.ase, args.info, args.trnas, args.output,
+                       clamp_threshold=args.clamp_threshold)

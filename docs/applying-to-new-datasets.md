@@ -186,6 +186,12 @@ nextflow run pipeline/main.nf --trna_reference results/reference/ ...
 
 The reference bundle is genome-specific. An hg38 bundle works for any hg38 dataset regardless of library prep or read length.
 
+## RPM Clamping
+
+The pipeline zeros out anticodons below `--rpm_clamp_threshold` (default: 1000 RPM). This removes noise from tRNA-derived fragments (tRFs) that inflate low-abundance isodecoders. For standard small RNA-seq, a threshold of 1000 RPM is a good default — validated on HEK293 data where it improved Spearman rho from 0.75 to 0.80 against mim-tRNAseq.
+
+Set `--rpm_clamp_threshold 0` to disable clamping and get raw RPM values. You may want to lower the threshold for deeply-sequenced datasets or raise it for shallow sequencing.
+
 ## Common Pitfalls
 
 ### 1. Silent adapter failure

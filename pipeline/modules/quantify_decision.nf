@@ -48,7 +48,7 @@ process QUANTIFY_RPM {
 
     script:
     """
-    echo "quantify_rpm v3" > /dev/null
+    echo "quantify_rpm v4" > /dev/null
 
     # Convert to BAM and get expression counts
     samtools view -@ ${task.cpus} -bS ${sam} | samtools sort -@ ${task.cpus} -o ${meta.id}.bam
@@ -64,7 +64,8 @@ process QUANTIFY_RPM {
         ${meta.id}_empty.ASE.csv \\
         ${cluster_info} \\
         ${trna_list} \\
-        ${meta.id}.RPM.csv
+        ${meta.id}.RPM.csv \\
+        ${params.rpm_clamp_threshold ? "--clamp-threshold ${params.rpm_clamp_threshold}" : ''}
 
     # Empty cluster RPM file (Decision path doesn't have per-cluster Salmon RPMs)
     echo "cluster,rpm" > ${meta.id}.cluster_rpm.csv
