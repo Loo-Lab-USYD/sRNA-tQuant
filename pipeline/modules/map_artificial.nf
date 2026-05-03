@@ -48,10 +48,10 @@ process MAP_ARTIFICIAL {
         --threads ${task.cpus} \\
         > ${meta.id}_mature.fastq
 
-    # Check for low tRNA mapping rate (common symptom of wrong adapter)
+    # Check for low tRNA mapping rate
     TRNA_READS=\$(( \$(wc -l < ${meta.id}_mature.fastq) / 4 ))
-    TOTAL_READS=\$(head -1 ${meta.id}_mapping.log | grep -oP '^\\d+')
-    if [ "\$TOTAL_READS" -gt 0 ]; then
+    TOTAL_READS=\$(grep -oP "^\\d+" ${meta.id}_mapping.log | head -1)
+    if [ -n "\$TOTAL_READS" ] && [ "\$TOTAL_READS" -gt 0 ]; then
         RATE=\$(python3 -c "print(f'{100 * \${TRNA_READS} / \${TOTAL_READS}:.1f}')")
         if python3 -c "exit(0 if \${TRNA_READS} / \${TOTAL_READS} < 0.02 else 1)"; then
             echo "" >&2
