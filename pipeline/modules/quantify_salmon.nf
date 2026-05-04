@@ -54,6 +54,7 @@ process SALMON_QUANT {
 process SALMON_TO_RPM {
     tag "${meta.id}"
     label 'process_low'
+    publishDir "${params.outdir}", mode: "copy"
 
     input:
     tuple val(meta), path(quant_dir)

@@ -17,6 +17,7 @@ nextflow.enable.dsl = 2
 include { TRNASCAN_SE; MASK_GENOME; BUILD_PRETRNA; BUILD_ARTIFICIAL_GENOME;
           BUILD_MATURE_LIBRARY; INDEX_REFERENCES } from './modules/prepare_reference'
 include { TRIM_READS }                            from './modules/trim_reads'
+include { REMOVE_RRNA }                           from './modules/remove_rrna'
 include { MAP_ARTIFICIAL }                        from './modules/map_artificial'
 include { MAP_CLUSTERS }                          from './modules/map_clusters'
 include { FILTER_TOPSCORE; SALMON_QUANT;
@@ -24,7 +25,7 @@ include { FILTER_TOPSCORE; SALMON_QUANT;
 include { RESOLVE_MULTIMAPPERS; QUANTIFY_RPM }    from './modules/quantify_decision'
 include { CALL_VARIANTS; COUNT_ALLELES;
           ADJUST_MODIFICATIONS }                  from './modules/call_modifications'
-include { AGGREGATE_RESULTS; MULTIQC }            from './modules/aggregate'
+include { AGGREGATE_RESULTS }            from './modules/aggregate'
 
 /*
  * Validate parameters
@@ -124,9 +125,18 @@ workflow {
     // 1. Trim reads
     TRIM_READS(ch_samples)
 
+    // 1b. Remove rRNA (optional — provide --rrna_index to enable)
+    ch_trimmed = TRIM_READS.out.reads
+    if (params.rrna_index) {
+        REMOVE_RRNA(ch_trimmed, file(params.rrna_index))
+        ch_post_rrna = REMOVE_RRNA.out.reads
+    } else {
+        ch_post_rrna = ch_trimmed
+    }
+
     // 2-4. Map to artificial genome, filter genome reads, filter mature reads
     MAP_ARTIFICIAL(
-        TRIM_READS.out.reads,
+        ch_post_rrna,
         ch_artificial_index,
         ch_pretrna_fasta,
         ch_pretrna_bed12
@@ -194,8 +204,8 @@ workflow {
     AGGREGATE_RESULTS(ch_all_rpms, ch_ase_files)
 
     // MultiQC
-    ch_multiqc = Channel.empty()
+    // MULTIQC disabled: ch_multiqc = Channel.empty()
         .mix(TRIM_READS.out.json.collect())
         .mix(MAP_CLUSTERS.out.log.collect())
-    MULTIQC(ch_multiqc.collect())
+    // MULTIQC disabled
 }
