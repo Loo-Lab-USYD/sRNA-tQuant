@@ -205,7 +205,7 @@ workflow {
 
     // MultiQC
     // MULTIQC disabled: ch_multiqc = Channel.empty()
-        .mix(TRIM_READS.out.json.collect())
-        .mix(MAP_CLUSTERS.out.log.collect())
+    // MULTIQC disabled: .mix(TRIM_READS.out.json.collect())
+    // MULTIQC disabled: .mix(MAP_CLUSTERS.out.log.collect())
     // MULTIQC disabled
 }
