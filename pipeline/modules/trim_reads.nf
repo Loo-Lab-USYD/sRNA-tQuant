@@ -47,6 +47,10 @@ process TRIM_READS {
             ${adapter_arg} \\
             --thread ${task.cpus} \\
             ${args}
+
+        # Concatenate R1+R2 into single FASTQ for SE-only downstream
+        cat ${meta.id}_trimmed_R1.fastq.gz ${meta.id}_trimmed_R2.fastq.gz > ${meta.id}_trimmed.fastq.gz
+        rm -f ${meta.id}_trimmed_R1.fastq.gz ${meta.id}_trimmed_R2.fastq.gz
         """
     }
 }
